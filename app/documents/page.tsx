@@ -58,6 +58,13 @@ export default function DocumentsPage() {
     e.preventDefault();
     if (!selectedFile) return;
 
+    // Check file size (50MB limit)
+    const maxSize = 50 * 1024 * 1024; // 50MB
+    if (selectedFile.size > maxSize) {
+      setError('File size exceeds 50MB limit');
+      return;
+    }
+
     setUploading(true);
     setError('');
 
@@ -66,7 +73,10 @@ export default function DocumentsPage() {
       formData.append('file', selectedFile);
 
       const token = localStorage.getItem('access_token');
-      const response = await fetch('/api/documents/upload', {
+      
+      // Connect directly to FastAPI backend (bypass Next.js proxy for large file uploads)
+      // This avoids Next.js 10MB body size limit
+      const response = await fetch('http://127.0.0.1:8000/api/documents/upload', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -85,7 +95,7 @@ export default function DocumentsPage() {
       
       await loadDocuments();
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || 'Upload failed. Please try again.');
     } finally {
       setUploading(false);
     }

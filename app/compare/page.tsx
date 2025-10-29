@@ -20,21 +20,19 @@ interface StockComparisonData {
 }
 
 interface ComparisonResponse {
-  id: string;
-  ticker1: string;
-  ticker2: string;
-  stock1_data: StockComparisonData;
-  stock2_data: StockComparisonData;
-  ai_analysis: string;
-  compared_at: string;
+  comparison_id: string;
+  stock1: StockComparisonData;
+  stock2: StockComparisonData;
+  ai_summary: string;
+  created_at: string;
 }
 
 interface HistoryItem {
   id: string;
   ticker1: string;
   ticker2: string;
-  compared_at: string;
-  ai_analysis_summary: string;
+  created_at: string;
+  ai_summary: string;
 }
 
 export default function ComparePage() {
@@ -228,12 +226,12 @@ export default function ComparePage() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', paddingBottom: '1rem', borderBottom: '2px solid var(--border-color)' }}>
             <h3>Comparison Results</h3>
             <span style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
-              {new Date(result.compared_at).toLocaleDateString()}
+              {new Date(result.created_at).toLocaleDateString()}
             </span>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: '2rem', marginBottom: '2rem' }}>
-            {renderStockColumn(result.stock1_data)}
+            {renderStockColumn(result.stock1)}
             
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <div style={{
@@ -253,7 +251,7 @@ export default function ComparePage() {
               </div>
             </div>
 
-            {renderStockColumn(result.stock2_data)}
+            {renderStockColumn(result.stock2)}
           </div>
 
           <div style={{
@@ -265,7 +263,7 @@ export default function ComparePage() {
           }}>
             <h4 style={{ margin: '0 0 1rem 0', color: 'var(--success-color)' }}>AI Analysis</h4>
             <div style={{ lineHeight: '1.8', color: 'var(--text-primary)' }}>
-              {result.ai_analysis.split('\n\n').map((paragraph, index) => (
+              {result.ai_summary.split('\n\n').map((paragraph, index) => (
                 <p key={index} style={{ marginBottom: '1rem' }}>{paragraph}</p>
               ))}
             </div>
@@ -328,11 +326,11 @@ export default function ComparePage() {
                     </span>
                   </div>
                   <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                    {new Date(item.compared_at).toLocaleDateString()}
+                    {new Date(item.created_at).toLocaleDateString()}
                   </span>
                 </div>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', lineHeight: '1.4', margin: 0 }}>
-                  {truncateText(item.ai_analysis_summary, 120)}
+                  {truncateText(item.ai_summary, 120)}
                 </p>
               </div>
             ))

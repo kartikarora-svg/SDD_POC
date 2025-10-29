@@ -137,8 +137,7 @@ async def upload_document(
     }
 
 
-@router.get("/", response_model=List[DocumentResponse])
-async def list_documents(
+async def _list_documents_impl(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -151,6 +150,24 @@ async def list_documents(
         .all()
     
     return documents
+
+
+@router.get("/", response_model=List[DocumentResponse])
+async def list_documents_slash(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """List all documents for the current user (with trailing slash)."""
+    return await _list_documents_impl(current_user, db)
+
+
+@router.get("", response_model=List[DocumentResponse])
+async def list_documents_no_slash(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """List all documents for the current user (without trailing slash)."""
+    return await _list_documents_impl(current_user, db)
 
 
 @router.get("/{document_id}", response_model=DocumentResponse)

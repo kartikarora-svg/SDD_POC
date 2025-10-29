@@ -18,11 +18,10 @@ from app.utils.stock_comparator import compare_stocks
 router = APIRouter()
 
 
-@router.post("/", response_model=ComparisonResponse)
-async def compare_stocks_endpoint(
+async def _compare_stocks_impl(
     comparison_request: ComparisonRequest,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    current_user: User,
+    db: Session
 ):
     """
     Compare two stocks side-by-side with AI analysis.
@@ -72,6 +71,26 @@ async def compare_stocks_endpoint(
         "ai_summary": ai_summary,
         "created_at": comparison_record.created_at
     }
+
+
+@router.post("/", response_model=ComparisonResponse)
+async def compare_stocks_endpoint_slash(
+    comparison_request: ComparisonRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Compare two stocks (with trailing slash)."""
+    return await _compare_stocks_impl(comparison_request, current_user, db)
+
+
+@router.post("", response_model=ComparisonResponse)
+async def compare_stocks_endpoint_no_slash(
+    comparison_request: ComparisonRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Compare two stocks (without trailing slash)."""
+    return await _compare_stocks_impl(comparison_request, current_user, db)
 
 
 @router.get("/history", response_model=List[ComparisonHistoryResponse])

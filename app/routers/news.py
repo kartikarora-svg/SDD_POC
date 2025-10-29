@@ -63,8 +63,7 @@ async def scrape_news_background(db: Session):
         db.rollback()
 
 
-@router.get("/", response_model=List[NewsArticleResponse])
-async def get_news_feed(
+async def _get_news_feed_impl(
     limit: int = 50,
     source: Optional[str] = None,
     current_user: User = Depends(get_current_user),
@@ -86,6 +85,28 @@ async def get_news_feed(
     articles = query.order_by(desc(NewsArticle.published_at)).limit(limit).all()
     
     return articles
+
+
+@router.get("/", response_model=List[NewsArticleResponse])
+async def get_news_feed_slash(
+    limit: int = 50,
+    source: Optional[str] = None,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get latest financial news articles (with trailing slash)."""
+    return await _get_news_feed_impl(limit, source, current_user, db)
+
+
+@router.get("", response_model=List[NewsArticleResponse])
+async def get_news_feed_no_slash(
+    limit: int = 50,
+    source: Optional[str] = None,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get latest financial news articles (without trailing slash)."""
+    return await _get_news_feed_impl(limit, source, current_user, db)
 
 
 @router.get("/sources")

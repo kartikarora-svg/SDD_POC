@@ -14,7 +14,10 @@ class Settings(BaseSettings):
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = False
     
-    # Database (SQLite for simplicity - no Docker needed!)
+    # Database
+    # SQLite (default): sqlite:///./finalytics.db
+    # PostgreSQL: postgresql://user:password@localhost:5432/finalytics
+    # MySQL: mysql+pymysql://user:password@localhost:3306/finalytics
     DATABASE_URL: str = "sqlite:///./finalytics.db"
     
     # Redis
