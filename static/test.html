@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finalytics Connection Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-box {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .success { color: #22c55e; font-weight: bold; }
+        .error { color: #ef4444; font-weight: bold; }
+        button {
+            background: #3b82f6;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover { background: #2563eb; }
+        pre {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        h1 { color: #1e293b; }
+        h2 { color: #475569; }
+    </style>
+</head>
+<body>
+    <div class="test-box">
+        <h1>🔍 Finalytics Connection Test</h1>
+        <p>This page tests if your backend and frontend are connected.</p>
+    </div>
+
+    <div class="test-box">
+        <h2>Test 1: Backend Health Check</h2>
+        <button onclick="testBackend()">Test Backend Connection</button>
+        <div id="backend-result"></div>
+    </div>
+
+    <div class="test-box">
+        <h2>Test 2: Frontend JavaScript</h2>
+        <div id="js-result">
+            <p class="success">✅ JavaScript is working (you can see this message)</p>
+        </div>
+    </div>
+
+    <div class="test-box">
+        <h2>Test 3: Authentication API</h2>
+        <button onclick="testAuthAPI()">Test Auth Endpoint</button>
+        <div id="auth-result"></div>
+    </div>
+
+    <div class="test-box">
+        <h2>✅ If All Tests Pass:</h2>
+        <p>Your backend and frontend ARE connected!</p>
+        <p><strong>Go to the main app:</strong></p>
+        <a href="/" style="display: inline-block; background: #22c55e; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+            Open Finalytics App
+        </a>
+    </div>
+
+    <script>
+        async function testBackend() {
+            const resultDiv = document.getElementById('backend-result');
+            resultDiv.innerHTML = '<p>Testing...</p>';
+            
+            try {
+                const response = await fetch('/api/health');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <p class="success">✅ Backend is responding!</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<p class="error">❌ Backend returned error: ${response.status}</p>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">❌ Cannot connect to backend: ${error.message}</p>`;
+            }
+        }
+
+        async function testAuthAPI() {
+            const resultDiv = document.getElementById('auth-result');
+            resultDiv.innerHTML = '<p>Testing...</p>';
+            
+            try {
+                // Test with invalid credentials (should return 401, which means endpoint is working)
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: 'test@test.com', password: 'test' })
+                });
+                
+                if (response.status === 401) {
+                    resultDiv.innerHTML = `
+                        <p class="success">✅ Auth API is working! (Got expected 401 for invalid credentials)</p>
+                    `;
+                } else if (response.ok) {
+                    resultDiv.innerHTML = `<p class="success">✅ Auth API is responding</p>`;
+                } else {
+                    resultDiv.innerHTML = `<p class="error">❌ Unexpected response: ${response.status}</p>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">❌ Cannot connect to auth API: ${error.message}</p>`;
+            }
+        }
+
+        // Auto-run backend test on load
+        window.addEventListener('load', () => {
+            setTimeout(testBackend, 500);
+        });
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finalytics - Financial Analytics Platform</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <h1>Finalytics</h1>
+            </div>
+            <ul class="nav-menu" id="nav-menu">
+                <li><a href="#home" class="nav-link active" data-page="home">Home</a></li>
+                <li><a href="#documents" class="nav-link" data-page="documents">Documents</a></li>
+                <li><a href="#news" class="nav-link" data-page="news">News</a></li>
+                <li><a href="#stocks" class="nav-link" data-page="stocks">Stocks</a></li>
+                <li><a href="#compare" class="nav-link" data-page="compare">Compare</a></li>
+                <li id="auth-nav">
+                    <a href="#login" class="nav-link" data-page="login" id="login-nav-link">Login</a>
+                    <a href="#register" class="nav-link hidden" data-page="register" id="register-nav-link">Register</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Page content will be dynamically loaded here -->
+            <div id="page-content">
+                <!-- Home Page (Default) -->
+                <div id="home-page" class="page active">
+                    <div class="hero">
+                        <h1>Welcome to Finalytics</h1>
+                        <p class="subtitle">AI-Powered Financial Analytics Platform</p>
+                        <div class="features">
+                            <div class="feature-card clickable" data-route="documents" onclick="navigateToFeature('documents')">
+                                <h3>📄 Document Intelligence</h3>
+                                <p>Upload financial documents and ask questions powered by AI</p>
+                                <span class="card-arrow">→</span>
+                            </div>
+                            <div class="feature-card clickable" data-route="news" onclick="navigateToFeature('news')">
+                                <h3>📰 Market News</h3>
+                                <p>Real-time financial news with AI-generated summaries</p>
+                                <span class="card-arrow">→</span>
+                            </div>
+                            <div class="feature-card clickable" data-route="stocks" onclick="navigateToFeature('stocks')">
+                                <h3>📈 Stock Research</h3>
+                                <p>Natural language queries for real-time stock data</p>
+                                <span class="card-arrow">→</span>
+                            </div>
+                            <div class="feature-card clickable" data-route="compare" onclick="navigateToFeature('compare')">
+                                <h3>⚖️ Stock Comparison</h3>
+                                <p>Side-by-side analysis of any two stocks</p>
+                                <span class="card-arrow">→</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Other pages will be loaded dynamically -->
+                <div id="login-page" class="page"></div>
+                <div id="register-page" class="page"></div>
+                <div id="documents-page" class="page"></div>
+                <div id="news-page" class="page"></div>
+                <div id="stocks-page" class="page"></div>
+                <div id="compare-page" class="page"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 Finalytics. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="/static/js/app.js"></script>
+    <script src="/static/js/auth.js"></script>
+    <script src="/static/js/documents.js"></script>
+    <script src="/static/js/news.js"></script>
+    <script src="/static/js/stocks.js"></script>
+    <script src="/static/js/compare.js"></script>
+</body>
+</html>
+

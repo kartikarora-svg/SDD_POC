@@ -1,0 +1,318 @@
+openapi: 3.0.0
+info:
+  title: Finalytics Documents API
+  version: 1.0.0
+  description: Document upload, OCR, and RAG Q&A endpoints (Principle 1)
+
+servers:
+  - url: http://localhost:8000
+    description: Local development
+
+paths:
+  /api/documents/upload:
+    post:
+      summary: Upload PDF document
+      tags:
+        - Documents
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: PDF file (max 50MB)
+      responses:
+        '202':
+          description: Upload accepted, processing started
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      document_id:
+                        type: string
+                        format: uuid
+                      filename:
+                        type: string
+                        example: 10k-report.pdf
+                      status:
+                        type: string
+                        enum: [processing]
+                        example: processing
+                      estimated_ready_time:
+                        type: string
+                        format: date-time
+                        example: "2025-10-28T12:01:00Z"
+        '400':
+          description: Invalid file (wrong format or too large)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: File size exceeds 50MB limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Processing error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/documents/{document_id}/status:
+    get:
+      summary: Get document processing status
+      tags:
+        - Documents
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: document_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Document status retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      document_id:
+                        type: string
+                        format: uuid
+                      status:
+                        type: string
+                        enum: [uploading, processing, ready, error]
+                        example: ready
+                      page_count:
+                        type: integer
+                        example: 156
+                      processing_time_seconds:
+                        type: integer
+                        example: 24
+                      error_message:
+                        type: string
+                        nullable: true
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Document not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/documents/{document_id}/query:
+    post:
+      summary: Ask question about document
+      tags:
+        - Documents
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: document_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - question
+              properties:
+                question:
+                  type: string
+                  maxLength: 5000
+                  example: "What was the total revenue in Q4 2024?"
+      responses:
+        '200':
+          description: Answer generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      answer:
+                        type: string
+                        example: "The total revenue in Q4 2024 was $42.5 billion, representing a 12% increase year-over-year."
+                      citations:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            page:
+                              type: integer
+                              example: 15
+                            text:
+                              type: string
+                              example: "Q4 2024 revenue: $42.5B"
+                      confidence:
+                        type: number
+                        format: float
+                        minimum: 0
+                        maximum: 1
+                        example: 0.95
+                      response_time_ms:
+                        type: integer
+                        example: 1847
+        '400':
+          description: Empty or invalid question
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Document not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: RAG processing error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/documents:
+    get:
+      summary: List user's documents
+      tags:
+        - Documents
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+            maximum: 100
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [uploading, processing, ready, error]
+      responses:
+        '200':
+          description: Document list retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      documents:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            document_id:
+                              type: string
+                              format: uuid
+                            filename:
+                              type: string
+                            status:
+                              type: string
+                            page_count:
+                              type: integer
+                            uploaded_at:
+                              type: string
+                              format: date-time
+                      total:
+                        type: integer
+                        example: 42
+                      limit:
+                        type: integer
+                      offset:
+                        type: integer
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: token
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        status:
+          type: string
+          example: error
+        message:
+          type: string
+        detail:
+          type: string
+
