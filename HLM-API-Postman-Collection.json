@@ -1,0 +1,3372 @@
+{
+  "info": {
+    "name": "HLM Platform — Full API Collection",
+    "_postman_id": "9a8aa6c2-1c25-470b-b8f2-8dcdd973c648",
+    "description": "Complete HLM Platform API Collection for Dev & QA manual testing.\n\nHOW TO USE:\n1. Import this collection AND the companion Environment file into Postman.\n2. Select the 'HLM Platform' environment from the top-right dropdown.\n3. Open '🔐 Authentication → Login — Get Auth Token', click Send.\n   The test script auto-saves the IdToken to {{auth_token}}.\n4. Run any query or mutation — all requests use {{auth_token}} automatically.\n\nGraphQL Endpoint: https://rw3sl7mwgzcvbg7zuyqj7ppjv4.appsync-api.us-east-2.amazonaws.com/graphql\nCognito Pool: us-east-2_Q36YWNsEC  |  Client: 3aseu1rf3q3tae7u4dgplllii8\n\nLast tested: 2026-03-27 — 20 queries PASS, 7 mutations PASS\nNew bugs found during live testing are marked ⚠️ in each request description.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "graphql_url",
+      "value": "https://rw3sl7mwgzcvbg7zuyqj7ppjv4.appsync-api.us-east-2.amazonaws.com/graphql",
+      "type": "string"
+    },
+    {
+      "key": "auth_token",
+      "value": "",
+      "type": "string",
+      "description": "Set automatically by the Login request test script."
+    },
+    {
+      "key": "username",
+      "value": "ajaykumar.yadav@3pillarglobal.com",
+      "type": "string"
+    },
+    {
+      "key": "password",
+      "value": "Secure@12345",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "🔐 Authentication",
+      "description": "Run 'Login — Get Auth Token' first. The test script auto-saves IdToken → {{auth_token}}.",
+      "item": [
+        {
+          "name": "🔐 Login — Get Auth Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "const token = json?.AuthenticationResult?.IdToken;",
+                  "pm.test('IdToken received', () => pm.expect(token).to.be.a('string'));",
+                  "if (token) {",
+                  "    pm.collectionVariables.set('auth_token', token);",
+                  "    pm.environment.set('auth_token', token);",
+                  "    console.log('✅ auth_token saved to collection & environment variables');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-amz-json-1.1"
+              },
+              {
+                "key": "X-Amz-Target",
+                "value": "AWSCognitoIdentityProviderService.InitiateAuth"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"AuthFlow\": \"USER_PASSWORD_AUTH\",\n  \"ClientId\": \"3aseu1rf3q3tae7u4dgplllii8\",\n  \"AuthParameters\": {\n    \"USERNAME\": \"{{username}}\",\n    \"PASSWORD\": \"{{password}}\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://cognito-idp.us-east-2.amazonaws.com/",
+              "host": [
+                "https://cognito-idp.us-east-2.amazonaws.com/"
+              ]
+            },
+            "description": "Authenticates with AWS Cognito and saves the IdToken as {{auth_token}}.\n\n▶ Run this request FIRST before any GraphQL call.\n\nThe Test script auto-saves the token to both the collection variable and environment variable 'auth_token'. All GraphQL requests use {{auth_token}} in the Authorization header (raw JWT — NO 'Bearer' prefix).\n\nPool ID: us-east-2_Q36YWNsEC\nClient ID: 3aseu1rf3q3tae7u4dgplllii8"
+          },
+          "_id": "d0468d8d-8e72-4f0a-8da9-b2b38ca3a264"
+        }
+      ],
+      "_id": "a7bd0b51-862e-48ac-a13d-65eb581cb4b2"
+    },
+    {
+      "name": "📊 Queries",
+      "description": "All 20 GraphQL query operations",
+      "item": [
+        {
+          "name": "📱 Device Queries",
+          "description": "listDevices, getDevice, getDevicesByCustomer, getDevicesByLocation",
+          "item": [
+            {
+              "name": "Q-01a listDevices — All",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.listDevices', () => {",
+                      "  pm.expect(json.data).to.have.property('listDevices');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"listDevices\",\n  \"query\": \"query listDevices($status: String, $limit: Int, $nextToken: String) {\\n  listDevices(status: $status, limit: $limit, nextToken: $nextToken) {\\n    items\\n    nextToken\\n    totalCount\\n  }\\n}\",\n  \"variables\": {}\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "Returns all 12 devices. Confirmed totalCount: 12 during live test."
+              },
+              "_id": "e6a978df-3145-4236-b69b-40993049a2e3"
+            },
+            {
+              "name": "Q-01b listDevices — Online",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.listDevices', () => {",
+                      "  pm.expect(json.data).to.have.property('listDevices');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"listDevices\",\n  \"query\": \"query listDevices($status: String, $limit: Int, $nextToken: String) {\\n  listDevices(status: $status, limit: $limit, nextToken: $nextToken) {\\n    items\\n    nextToken\\n    totalCount\\n  }\\n}\",\n  \"variables\": {\n    \"status\": \"Online\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "Filter by Online status. Confirmed totalCount: 6."
+              },
+              "_id": "fa192f1b-ecd1-4225-887e-d714fc41b45b"
+            },
+            {
+              "name": "Q-01c listDevices — Offline",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.listDevices', () => {",
+                      "  pm.expect(json.data).to.have.property('listDevices');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"listDevices\",\n  \"query\": \"query listDevices($status: String, $limit: Int, $nextToken: String) {\\n  listDevices(status: $status, limit: $limit, nextToken: $nextToken) {\\n    items\\n    nextToken\\n    totalCount\\n  }\\n}\",\n  \"variables\": {\n    \"status\": \"Offline\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "Filter by Offline status. Confirmed totalCount: 3."
+              },
+              "_id": "0c8bc493-95e5-47ab-b561-3efa72d79b01"
+            },
+            {
+              "name": "Q-01d listDevices — Maintenance",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.listDevices', () => {",
+                      "  pm.expect(json.data).to.have.property('listDevices');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"listDevices\",\n  \"query\": \"query listDevices($status: String, $limit: Int, $nextToken: String) {\\n  listDevices(status: $status, limit: $limit, nextToken: $nextToken) {\\n    items\\n    nextToken\\n    totalCount\\n  }\\n}\",\n  \"variables\": {\n    \"status\": \"Maintenance\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "Filter by Maintenance status. Confirmed totalCount: 3."
+              },
+              "_id": "5cc0c5e5-621f-4f80-8c43-14cda5e80cf4"
+            },
+            {
+              "name": "Q-01e listDevices — Paginated (limit 5)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.listDevices', () => {",
+                      "  pm.expect(json.data).to.have.property('listDevices');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"listDevices\",\n  \"query\": \"query listDevices($status: String, $limit: Int, $nextToken: String) {\\n  listDevices(status: $status, limit: $limit, nextToken: $nextToken) {\\n    items\\n    nextToken\\n    totalCount\\n  }\\n}\",\n  \"variables\": {\n    \"limit\": 5\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "Returns first 5 devices with a nextToken cursor for pagination."
+              },
+              "_id": "857033e0-1302-4842-a3ed-df420df3b58f"
+            },
+            {
+              "name": "Q-02 getDevice",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.getDevice', () => {",
+                      "  pm.expect(json.data).to.have.property('getDevice');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"getDevice\",\n  \"query\": \"query getDevice($id: String!) {\\n  getDevice(id: $id) {\\n    id\\n    deviceName\\n    serialNumber\\n    model\\n    status\\n    location\\n    firmwareVersion\\n  }\\n}\",\n  \"variables\": {\n    \"id\": \"a11bc9b9-ba1e-4e1f-8523-45cd003a6845\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "Fetch single device by ID. Sample: UPS-POWER-05."
+              },
+              "_id": "75202b27-3831-4095-99db-e498e7cf6340"
+            },
+            {
+              "name": "Q-03 getDevicesByCustomer",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.getDevicesByCustomer', () => {",
+                      "  pm.expect(json.data).to.have.property('getDevicesByCustomer');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"getDevicesByCustomer\",\n  \"query\": \"query getDevicesByCustomer($customerId: String!) {\\n  getDevicesByCustomer(customerId: $customerId) {\\n    items\\n    totalCount\\n  }\\n}\",\n  \"variables\": {\n    \"customerId\": \"c001\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "All devices for customer c001. Confirmed totalCount: 0 (no devices mapped to c001 in demo data)."
+              },
+              "_id": "195633d4-cff1-4e1c-9901-4d637a121331"
+            },
+            {
+              "name": "Q-04 getDevicesByLocation",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.getDevicesByLocation', () => {",
+                      "  pm.expect(json.data).to.have.property('getDevicesByLocation');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"getDevicesByLocation\",\n  \"query\": \"query getDevicesByLocation($location: String!) {\\n  getDevicesByLocation(location: $location) {\\n    items\\n    totalCount\\n  }\\n}\",\n  \"variables\": {\n    \"location\": \"New York Office\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "Devices at a named location. location must exactly match device record string."
+              },
+              "_id": "9b14a826-876d-447b-a6aa-9b7d6fa5e47d"
+            }
+          ],
+          "_id": "92e612e3-7f84-4172-a852-bd1aeaff527c"
+        },
+        {
+          "name": "💾 Firmware Queries",
+          "description": "listFirmware, getFirmware, getFirmwareByModel, getFirmwareWithRelations",
+          "item": [
+            {
+              "name": "Q-05a listFirmware — All",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.listFirmware', () => {",
+                      "  pm.expect(json.data).to.have.property('listFirmware');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"listFirmware\",\n  \"query\": \"query listFirmware($status: String, $limit: Int, $nextToken: String) {\\n  listFirmware(status: $status, limit: $limit, nextToken: $nextToken) {\\n    items\\n    nextToken\\n    totalCount\\n  }\\n}\",\n  \"variables\": {}\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "All 9 firmware records. Confirmed totalCount: 9."
+              },
+              "_id": "833ffabb-937b-448e-9e5f-be7944603027"
+            },
+            {
+              "name": "Q-05b listFirmware — Pending",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.listFirmware', () => {",
+                      "  pm.expect(json.data).to.have.property('listFirmware');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"listFirmware\",\n  \"query\": \"query listFirmware($status: String, $limit: Int, $nextToken: String) {\\n  listFirmware(status: $status, limit: $limit, nextToken: $nextToken) {\\n    items\\n    nextToken\\n    totalCount\\n  }\\n}\",\n  \"variables\": {\n    \"status\": \"Pending\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "Pending firmware only. Confirmed totalCount: 2."
+              },
+              "_id": "22182870-d4cb-4562-ae45-63753c860386"
+            },
+            {
+              "name": "Q-05c listFirmware — Approved",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.listFirmware', () => {",
+                      "  pm.expect(json.data).to.have.property('listFirmware');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"listFirmware\",\n  \"query\": \"query listFirmware($status: String, $limit: Int, $nextToken: String) {\\n  listFirmware(status: $status, limit: $limit, nextToken: $nextToken) {\\n    items\\n    nextToken\\n    totalCount\\n  }\\n}\",\n  \"variables\": {\n    \"status\": \"Approved\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "Approved firmware only. Confirmed totalCount: 2."
+              },
+              "_id": "e2546ab2-cc81-4ae9-bcb0-83e0cab7ee24"
+            },
+            {
+              "name": "Q-05d listFirmware — Rejected",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.listFirmware', () => {",
+                      "  pm.expect(json.data).to.have.property('listFirmware');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"listFirmware\",\n  \"query\": \"query listFirmware($status: String, $limit: Int, $nextToken: String) {\\n  listFirmware(status: $status, limit: $limit, nextToken: $nextToken) {\\n    items\\n    nextToken\\n    totalCount\\n  }\\n}\",\n  \"variables\": {\n    \"status\": \"Rejected\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "Rejected firmware only. Confirmed totalCount: 1."
+              },
+              "_id": "5e9ca195-a55d-4034-b8d1-d83800f716b1"
+            },
+            {
+              "name": "Q-05e listFirmware — Deprecated ⚠️ BUG",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.listFirmware', () => {",
+                      "  pm.expect(json.data).to.have.property('listFirmware');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"listFirmware\",\n  \"query\": \"query listFirmware($status: String, $limit: Int, $nextToken: String) {\\n  listFirmware(status: $status, limit: $limit, nextToken: $nextToken) {\\n    items\\n    nextToken\\n    totalCount\\n  }\\n}\",\n  \"variables\": {\n    \"status\": \"Deprecated\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "⚠️ KNOWN BUG: Deprecated filter is NOT applied server-side.\nExpected: only deprecated records. Actual: returns ALL 9 firmware records.\nConfirmed during live testing: totalCount was 4 (which is not the deprecated count — it's a subset returned without filter)."
+              },
+              "_id": "69fa5aca-3dea-48e1-a945-86b0485f3eb0"
+            },
+            {
+              "name": "Q-06 getFirmware",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.getFirmware', () => {",
+                      "  pm.expect(json.data).to.have.property('getFirmware');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"getFirmware\",\n  \"query\": \"query getFirmware($id: String!) {\\n  getFirmware(id: $id) {\\n    id\\n    name\\n    version\\n    deviceModel\\n    status\\n    releaseDate\\n    fileSize\\n    checksum\\n  }\\n}\",\n  \"variables\": {\n    \"id\": \"94688ba5-81b0-4c73-9f2a-5923f0b4b256\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "Single firmware record. Sample: XR-5000 Security Patch (Pending). fileSize is Int (bytes)."
+              },
+              "_id": "613cd95f-34d5-4ed8-9110-31ba9a91af77"
+            },
+            {
+              "name": "Q-07 getFirmwareByModel",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.getFirmwareByModel', () => {",
+                      "  pm.expect(json.data).to.have.property('getFirmwareByModel');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"getFirmwareByModel\",\n  \"query\": \"query getFirmwareByModel($deviceModel: String!) {\\n  getFirmwareByModel(deviceModel: $deviceModel) {\\n    items\\n    totalCount\\n  }\\n}\",\n  \"variables\": {\n    \"deviceModel\": \"XR-5000\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "All firmware for model XR-5000. Confirmed totalCount: 3."
+              },
+              "_id": "f5c7958a-86d8-4b9c-aa15-0a32a5d018a2"
+            },
+            {
+              "name": "Q-08 getFirmwareWithRelations",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.getFirmwareWithRelations', () => {",
+                      "  pm.expect(json.data).to.have.property('getFirmwareWithRelations');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"getFirmwareWithRelations\",\n  \"query\": \"query getFirmwareWithRelations($id: String!) {\\n  getFirmwareWithRelations(id: $id) {\\n    items\\n    totalCount\\n  }\\n}\",\n  \"variables\": {\n    \"id\": \"94688ba5-81b0-4c73-9f2a-5923f0b4b256\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "Firmware + related compliance + audit records in items AWSJSON. Parse client-side."
+              },
+              "_id": "6b5bc3a9-dadc-4992-a6ef-24919b7efe84"
+            }
+          ],
+          "_id": "f659af76-eae4-414e-9981-44c9220abb1a"
+        },
+        {
+          "name": "🔧 Service Order Queries",
+          "description": "listServiceOrdersByStatus, listServiceOrdersByDate, getServiceOrder, getServiceOrdersByTechnician",
+          "item": [
+            {
+              "name": "Q-09a listServiceOrdersByStatus — Pending",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.listServiceOrdersByStatus', () => {",
+                      "  pm.expect(json.data).to.have.property('listServiceOrdersByStatus');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"listServiceOrdersByStatus\",\n  \"query\": \"query listServiceOrdersByStatus($status: String!) {\\n  listServiceOrdersByStatus(status: $status) {\\n    items\\n    totalCount\\n  }\\n}\",\n  \"variables\": {\n    \"status\": \"Pending\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "Pending orders. Confirmed totalCount: 0."
+              },
+              "_id": "1f53e08f-7339-4438-a282-e6cb1dcbdeb6"
+            },
+            {
+              "name": "Q-09b listServiceOrdersByStatus — In Progress",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.listServiceOrdersByStatus', () => {",
+                      "  pm.expect(json.data).to.have.property('listServiceOrdersByStatus');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"listServiceOrdersByStatus\",\n  \"query\": \"query listServiceOrdersByStatus($status: String!) {\\n  listServiceOrdersByStatus(status: $status) {\\n    items\\n    totalCount\\n  }\\n}\",\n  \"variables\": {\n    \"status\": \"In Progress\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "In Progress orders. Confirmed totalCount: 0."
+              },
+              "_id": "ca6761b4-6a28-492e-b98b-3a5f79e57cc8"
+            },
+            {
+              "name": "Q-09c listServiceOrdersByStatus — Completed",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.listServiceOrdersByStatus', () => {",
+                      "  pm.expect(json.data).to.have.property('listServiceOrdersByStatus');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"listServiceOrdersByStatus\",\n  \"query\": \"query listServiceOrdersByStatus($status: String!) {\\n  listServiceOrdersByStatus(status: $status) {\\n    items\\n    totalCount\\n  }\\n}\",\n  \"variables\": {\n    \"status\": \"Completed\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "Completed orders. Confirmed totalCount: 2."
+              },
+              "_id": "330a6f41-3ab6-49e2-a866-7f5b87a49e0f"
+            },
+            {
+              "name": "Q-09d listServiceOrdersByStatus — Cancelled",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.listServiceOrdersByStatus', () => {",
+                      "  pm.expect(json.data).to.have.property('listServiceOrdersByStatus');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"listServiceOrdersByStatus\",\n  \"query\": \"query listServiceOrdersByStatus($status: String!) {\\n  listServiceOrdersByStatus(status: $status) {\\n    items\\n    totalCount\\n  }\\n}\",\n  \"variables\": {\n    \"status\": \"Cancelled\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "Cancelled orders. Confirmed totalCount: 1."
+              },
+              "_id": "de894dc2-31c7-4a75-b03f-6d60007dd358"
+            },
+            {
+              "name": "Q-10a listServiceOrdersByDate — Valid Range",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.listServiceOrdersByDate', () => {",
+                      "  pm.expect(json.data).to.have.property('listServiceOrdersByDate');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"listServiceOrdersByDate\",\n  \"query\": \"query listServiceOrdersByDate($startDate: String!, $endDate: String!) {\\n  listServiceOrdersByDate(startDate: $startDate, endDate: $endDate) {\\n    items\\n    totalCount\\n  }\\n}\",\n  \"variables\": {\n    \"startDate\": \"2025-01-01\",\n    \"endDate\": \"2026-12-31\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "All orders in 2025–2026. Confirmed totalCount: 9."
+              },
+              "_id": "0de68c5c-78a4-43b6-9fd2-3c02571404e6"
+            },
+            {
+              "name": "Q-10b listServiceOrdersByDate — Future Range",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.listServiceOrdersByDate', () => {",
+                      "  pm.expect(json.data).to.have.property('listServiceOrdersByDate');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"listServiceOrdersByDate\",\n  \"query\": \"query listServiceOrdersByDate($startDate: String!, $endDate: String!) {\\n  listServiceOrdersByDate(startDate: $startDate, endDate: $endDate) {\\n    items\\n    totalCount\\n  }\\n}\",\n  \"variables\": {\n    \"startDate\": \"2030-01-01\",\n    \"endDate\": \"2030-12-31\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "Future date range → returns empty. Confirmed totalCount: 0."
+              },
+              "_id": "b9795c5a-1a8a-494a-8e45-28c94bd61aac"
+            },
+            {
+              "name": "Q-10c listServiceOrdersByDate — Reversed Range ⚠️ BUG",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.listServiceOrdersByDate', () => {",
+                      "  pm.expect(json.data).to.have.property('listServiceOrdersByDate');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"listServiceOrdersByDate\",\n  \"query\": \"query listServiceOrdersByDate($startDate: String!, $endDate: String!) {\\n  listServiceOrdersByDate(startDate: $startDate, endDate: $endDate) {\\n    items\\n    totalCount\\n  }\\n}\",\n  \"variables\": {\n    \"startDate\": \"2026-12-31\",\n    \"endDate\": \"2025-01-01\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "⚠️ NEW BUG FOUND: Reversed range (end < start) throws a raw DynamoDB BETWEEN error (400).\nAPI catalogue stated it would return empty array — INCORRECT.\nActual error: 'Invalid KeyConditionExpression: The BETWEEN operator requires upper bound >= lower bound'."
+              },
+              "_id": "47ad888f-04ca-436d-8fab-9a8119e0614a"
+            },
+            {
+              "name": "Q-11 getServiceOrder",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.getServiceOrder', () => {",
+                      "  pm.expect(json.data).to.have.property('getServiceOrder');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"getServiceOrder\",\n  \"query\": \"query getServiceOrder($id: String!) {\\n  getServiceOrder(id: $id) {\\n    id\\n    title\\n    description\\n    status\\n    priority\\n    technicianId\\n    scheduledDate\\n  }\\n}\",\n  \"variables\": {\n    \"id\": \"acf1df53-cf21-476d-9410-251efbf04b37\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "Single service order. Sample: 'Core Switch Firmware Upgrade' (Completed)."
+              },
+              "_id": "a463e969-6117-4ab3-a4d1-458254635797"
+            },
+            {
+              "name": "Q-12 getServiceOrdersByTechnician",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.getServiceOrdersByTechnician', () => {",
+                      "  pm.expect(json.data).to.have.property('getServiceOrdersByTechnician');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"getServiceOrdersByTechnician\",\n  \"query\": \"query getServiceOrdersByTechnician($technicianId: String!) {\\n  getServiceOrdersByTechnician(technicianId: $technicianId) {\\n    items\\n    totalCount\\n  }\\n}\",\n  \"variables\": {\n    \"technicianId\": \"u003\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "All orders for technician u003 (Carol Smith). Confirmed totalCount: 5."
+              },
+              "_id": "f3ef8233-ca9f-49a4-9c73-a9efb09e4ca7"
+            }
+          ],
+          "_id": "ef22ccd6-827e-4cab-98bb-ce3a9512a7c2"
+        },
+        {
+          "name": "✅ Compliance Queries",
+          "description": "listComplianceByStatus, getCompliance, getComplianceByCertification",
+          "item": [
+            {
+              "name": "Q-13a listComplianceByStatus — Approved",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.listComplianceByStatus', () => {",
+                      "  pm.expect(json.data).to.have.property('listComplianceByStatus');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"listComplianceByStatus\",\n  \"query\": \"query listComplianceByStatus($status: String!) {\\n  listComplianceByStatus(status: $status) {\\n    items\\n    totalCount\\n  }\\n}\",\n  \"variables\": {\n    \"status\": \"Approved\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "Approved compliance records. Confirmed totalCount: 5."
+              },
+              "_id": "d9102b3c-e1b2-4ae8-90a9-2ab025f69111"
+            },
+            {
+              "name": "Q-13b listComplianceByStatus — Pending",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.listComplianceByStatus', () => {",
+                      "  pm.expect(json.data).to.have.property('listComplianceByStatus');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"listComplianceByStatus\",\n  \"query\": \"query listComplianceByStatus($status: String!) {\\n  listComplianceByStatus(status: $status) {\\n    items\\n    totalCount\\n  }\\n}\",\n  \"variables\": {\n    \"status\": \"Pending\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "Pending compliance records. Confirmed totalCount: 2."
+              },
+              "_id": "5b919419-74bb-4913-b6fb-9fb4bbcbf2a4"
+            },
+            {
+              "name": "Q-13c listComplianceByStatus — Deprecated",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.listComplianceByStatus', () => {",
+                      "  pm.expect(json.data).to.have.property('listComplianceByStatus');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"listComplianceByStatus\",\n  \"query\": \"query listComplianceByStatus($status: String!) {\\n  listComplianceByStatus(status: $status) {\\n    items\\n    totalCount\\n  }\\n}\",\n  \"variables\": {\n    \"status\": \"Deprecated\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "Deprecated compliance records. Confirmed totalCount: 0."
+              },
+              "_id": "b687e77f-1af8-4fc9-9b4d-af8bd464f2bc"
+            },
+            {
+              "name": "Q-14 getCompliance",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.getCompliance', () => {",
+                      "  pm.expect(json.data).to.have.property('getCompliance');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"getCompliance\",\n  \"query\": \"query getCompliance($id: String!) {\\n  getCompliance(id: $id) {\\n    id\\n    firmwareId\\n    firmwareVersion\\n    deviceModel\\n    status\\n    certifications\\n    vulnerabilities\\n  }\\n}\",\n  \"variables\": {\n    \"id\": \"c1ef0b2f-0ef2-49e8-8aa9-86ca9ee21401\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "Single compliance record by ID. Sample: HIPAA-certified (Approved)."
+              },
+              "_id": "933afabc-7c1f-4772-8e6e-67307fdd7c05"
+            },
+            {
+              "name": "Q-15a getComplianceByCertification — HIPAA",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.getComplianceByCertification', () => {",
+                      "  pm.expect(json.data).to.have.property('getComplianceByCertification');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"getComplianceByCertification\",\n  \"query\": \"query getComplianceByCertification($certification: String!) {\\n  getComplianceByCertification(certification: $certification) {\\n    items\\n    totalCount\\n  }\\n}\",\n  \"variables\": {\n    \"certification\": \"HIPAA\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "HIPAA-certified records. Confirmed totalCount: 1."
+              },
+              "_id": "bb833388-1f66-4cf4-b218-f7e63f5de8c5"
+            },
+            {
+              "name": "Q-15b getComplianceByCertification — ISO 27001",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.getComplianceByCertification', () => {",
+                      "  pm.expect(json.data).to.have.property('getComplianceByCertification');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"getComplianceByCertification\",\n  \"query\": \"query getComplianceByCertification($certification: String!) {\\n  getComplianceByCertification(certification: $certification) {\\n    items\\n    totalCount\\n  }\\n}\",\n  \"variables\": {\n    \"certification\": \"ISO 27001\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "ISO 27001 certified records. Confirmed totalCount: 2."
+              },
+              "_id": "f06b8adb-dd8c-496f-948e-94846e607cac"
+            },
+            {
+              "name": "Q-15c getComplianceByCertification — FCC",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.getComplianceByCertification', () => {",
+                      "  pm.expect(json.data).to.have.property('getComplianceByCertification');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"getComplianceByCertification\",\n  \"query\": \"query getComplianceByCertification($certification: String!) {\\n  getComplianceByCertification(certification: $certification) {\\n    items\\n    totalCount\\n  }\\n}\",\n  \"variables\": {\n    \"certification\": \"FCC\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "FCC certified records. Confirmed totalCount: 1."
+              },
+              "_id": "93f3dd5e-6bfb-42da-be96-c15b6d7fc4c9"
+            },
+            {
+              "name": "Q-15d getComplianceByCertification — WiFi Alliance",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.getComplianceByCertification', () => {",
+                      "  pm.expect(json.data).to.have.property('getComplianceByCertification');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"getComplianceByCertification\",\n  \"query\": \"query getComplianceByCertification($certification: String!) {\\n  getComplianceByCertification(certification: $certification) {\\n    items\\n    totalCount\\n  }\\n}\",\n  \"variables\": {\n    \"certification\": \"WiFi Alliance\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "WiFi Alliance certified records. Note: totalCount field not returned in response for this cert."
+              },
+              "_id": "3051639d-41ac-4c16-ac4e-b453bee6ba01"
+            },
+            {
+              "name": "Q-15e getComplianceByCertification — CE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.getComplianceByCertification', () => {",
+                      "  pm.expect(json.data).to.have.property('getComplianceByCertification');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"getComplianceByCertification\",\n  \"query\": \"query getComplianceByCertification($certification: String!) {\\n  getComplianceByCertification(certification: $certification) {\\n    items\\n    totalCount\\n  }\\n}\",\n  \"variables\": {\n    \"certification\": \"CE\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "CE certified records. Confirmed totalCount: 1."
+              },
+              "_id": "51962557-2b43-4433-a080-b33bbf5ab269"
+            }
+          ],
+          "_id": "f6088ef4-4c25-498b-b6c3-e2d9b05499f7"
+        },
+        {
+          "name": "📋 Audit Log Queries",
+          "description": "listAuditLogs, getAuditLogsByUser",
+          "item": [
+            {
+              "name": "Q-16a listAuditLogs — Last 50 Entries",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.listAuditLogs', () => {",
+                      "  pm.expect(json.data).to.have.property('listAuditLogs');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"listAuditLogs\",\n  \"query\": \"query listAuditLogs($startDate: String!, $endDate: String!, $limit: Int) {\\n  listAuditLogs(startDate: $startDate, endDate: $endDate, limit: $limit) {\\n    items\\n    nextToken\\n    totalCount\\n  }\\n}\",\n  \"variables\": {\n    \"startDate\": \"2025-01-01\",\n    \"endDate\": \"2026-12-31\",\n    \"limit\": 50\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "Broad date range with limit 50. Confirmed totalCount: 50."
+              },
+              "_id": "a60b046f-20b2-47e7-a911-fc41f593be66"
+            },
+            {
+              "name": "Q-16b listAuditLogs — 24-Hour Window (Dashboard)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.listAuditLogs', () => {",
+                      "  pm.expect(json.data).to.have.property('listAuditLogs');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"listAuditLogs\",\n  \"query\": \"query listAuditLogs($startDate: String!, $endDate: String!, $limit: Int) {\\n  listAuditLogs(startDate: $startDate, endDate: $endDate, limit: $limit) {\\n    items\\n    nextToken\\n    totalCount\\n  }\\n}\",\n  \"variables\": {\n    \"startDate\": \"2026-03-27T00:00:00Z\",\n    \"endDate\": \"2026-03-27T23:59:59Z\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "24-hour window used by the Dashboard Recent Alerts panel. Confirmed totalCount: 0 (no activity today)."
+              },
+              "_id": "d946a4dd-cfdf-4a28-b2a2-a7085892df58"
+            },
+            {
+              "name": "Q-16c listAuditLogs — Future Range",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.listAuditLogs', () => {",
+                      "  pm.expect(json.data).to.have.property('listAuditLogs');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"listAuditLogs\",\n  \"query\": \"query listAuditLogs($startDate: String!, $endDate: String!, $limit: Int) {\\n  listAuditLogs(startDate: $startDate, endDate: $endDate, limit: $limit) {\\n    items\\n    nextToken\\n    totalCount\\n  }\\n}\",\n  \"variables\": {\n    \"startDate\": \"2030-01-01\",\n    \"endDate\": \"2030-12-31\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "Future date range → returns empty. Confirmed totalCount: 0."
+              },
+              "_id": "eca9335e-09d6-4cf0-9865-32ecd64e1a83"
+            },
+            {
+              "name": "Q-17a getAuditLogsByUser — u001 (Alice)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.getAuditLogsByUser', () => {",
+                      "  pm.expect(json.data).to.have.property('getAuditLogsByUser');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"getAuditLogsByUser\",\n  \"query\": \"query getAuditLogsByUser($userId: String!) {\\n  getAuditLogsByUser(userId: $userId) {\\n    items\\n    totalCount\\n  }\\n}\",\n  \"variables\": {\n    \"userId\": \"u001\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "Audit trail for Alice Turner (Admin). Confirmed totalCount: 4."
+              },
+              "_id": "5dbfd498-91b9-4ba5-8718-b77820b3e974"
+            },
+            {
+              "name": "Q-17b getAuditLogsByUser — u002 (Bob)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.getAuditLogsByUser', () => {",
+                      "  pm.expect(json.data).to.have.property('getAuditLogsByUser');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"getAuditLogsByUser\",\n  \"query\": \"query getAuditLogsByUser($userId: String!) {\\n  getAuditLogsByUser(userId: $userId) {\\n    items\\n    totalCount\\n  }\\n}\",\n  \"variables\": {\n    \"userId\": \"u002\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "Audit trail for Bob Nguyen (Manager). Confirmed totalCount: 2."
+              },
+              "_id": "1c916d15-0b07-4252-8a48-48f7df9d1e73"
+            },
+            {
+              "name": "Q-17c getAuditLogsByUser — u003 (Carol)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.getAuditLogsByUser', () => {",
+                      "  pm.expect(json.data).to.have.property('getAuditLogsByUser');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"getAuditLogsByUser\",\n  \"query\": \"query getAuditLogsByUser($userId: String!) {\\n  getAuditLogsByUser(userId: $userId) {\\n    items\\n    totalCount\\n  }\\n}\",\n  \"variables\": {\n    \"userId\": \"u003\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "Audit trail for Carol Smith (Technician). Confirmed totalCount: 1."
+              },
+              "_id": "2449070e-86bd-49fd-b2e9-69104e5f1636"
+            }
+          ],
+          "_id": "82b8aeb0-3944-4d62-8753-89dbbee45782"
+        },
+        {
+          "name": "👤 User & Customer Queries",
+          "description": "getUserByEmail, listUsersByRole, getCustomerWithRelations",
+          "item": [
+            {
+              "name": "Q-18a getUserByEmail — alice@acmecorp.com",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.getUserByEmail', () => {",
+                      "  pm.expect(json.data).to.have.property('getUserByEmail');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"getUserByEmail\",\n  \"query\": \"query getUserByEmail($email: String!) {\\n  getUserByEmail(email: $email) {\\n    id\\n    email\\n    role\\n    firstName\\n    lastName\\n  }\\n}\",\n  \"variables\": {\n    \"email\": \"alice@acmecorp.com\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "Returns user u001 (Alice Turner, Admin). Confirmed id: u001."
+              },
+              "_id": "8207b9cc-0e42-4a4a-bf64-d4f9f3bb4cfa"
+            },
+            {
+              "name": "Q-18b getUserByEmail — bob@acmecorp.com ⚠️ BUG",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.getUserByEmail', () => {",
+                      "  pm.expect(json.data).to.have.property('getUserByEmail');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"getUserByEmail\",\n  \"query\": \"query getUserByEmail($email: String!) {\\n  getUserByEmail(email: $email) {\\n    id\\n    email\\n    role\\n    firstName\\n    lastName\\n  }\\n}\",\n  \"variables\": {\n    \"email\": \"bob@acmecorp.com\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "⚠️ NEW BUG FOUND: Returns null. Bob exists in Cognito but NOT in the application DB.\nData inconsistency — user is authenticated but has no profile record."
+              },
+              "_id": "7987f34d-6eb7-4190-85ae-594970c1c6b6"
+            },
+            {
+              "name": "Q-18c getUserByEmail — carol@acmecorp.com",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.getUserByEmail', () => {",
+                      "  pm.expect(json.data).to.have.property('getUserByEmail');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"getUserByEmail\",\n  \"query\": \"query getUserByEmail($email: String!) {\\n  getUserByEmail(email: $email) {\\n    id\\n    email\\n    role\\n    firstName\\n    lastName\\n  }\\n}\",\n  \"variables\": {\n    \"email\": \"carol@acmecorp.com\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "Returns user u003 (Carol Smith, Technician). Confirmed id: u003."
+              },
+              "_id": "640b6a37-3caa-4350-8818-3dd51a512c4d"
+            },
+            {
+              "name": "Q-19a listUsersByRole — Technician",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.listUsersByRole', () => {",
+                      "  pm.expect(json.data).to.have.property('listUsersByRole');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"listUsersByRole\",\n  \"query\": \"query listUsersByRole($role: String!) {\\n  listUsersByRole(role: $role) {\\n    items\\n    totalCount\\n  }\\n}\",\n  \"variables\": {\n    \"role\": \"Technician\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "Expected: only technicians. Confirmed totalCount: 5 (ALL users). Bug confirmed."
+              },
+              "_id": "6678dd4b-3a1a-4aaf-a496-0c0d55a4f877"
+            },
+            {
+              "name": "Q-19b listUsersByRole — GARBAGE_ROLE ⚠️ BUG",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.listUsersByRole', () => {",
+                      "  pm.expect(json.data).to.have.property('listUsersByRole');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"listUsersByRole\",\n  \"query\": \"query listUsersByRole($role: String!) {\\n  listUsersByRole(role: $role) {\\n    items\\n    totalCount\\n  }\\n}\",\n  \"variables\": {\n    \"role\": \"GARBAGE_ROLE\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "⚠️ KNOWN BUG CONFIRMED: role filter is NOT applied server-side.\nPassing 'GARBAGE_ROLE' still returns all 5 users (totalCount: 5)."
+              },
+              "_id": "471914d1-fd42-4fe3-9a0b-999545e16711"
+            },
+            {
+              "name": "Q-20 getCustomerWithRelations",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.getCustomerWithRelations', () => {",
+                      "  pm.expect(json.data).to.have.property('getCustomerWithRelations');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"getCustomerWithRelations\",\n  \"query\": \"query getCustomerWithRelations($customerId: String!) {\\n  getCustomerWithRelations(customerId: $customerId) {\\n    items\\n    totalCount\\n  }\\n}\",\n  \"variables\": {\n    \"customerId\": \"c001\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "Customer c001 with all related devices and service orders. Confirmed totalCount: 1."
+              },
+              "_id": "c0141115-fc7f-41ea-b80c-e4e4a13ccbbd"
+            }
+          ],
+          "_id": "768c891c-9e5c-4889-a4d0-4d988b7407ee"
+        }
+      ],
+      "_id": "e24492be-7bb0-4122-8ea8-1657b08f7de6"
+    },
+    {
+      "name": "✏️ Mutations",
+      "description": "All 7 GraphQL mutation operations (with correct required fields from live testing)",
+      "item": [
+        {
+          "name": "📱 Device Mutations",
+          "description": "createDevice, updateDeviceCoords",
+          "item": [
+            {
+              "name": "M-01 createDevice ✅",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.createDevice', () => {",
+                      "  pm.expect(json.data).to.have.property('createDevice');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"createDevice\",\n  \"query\": \"mutation createDevice(\\n  $deviceName: String!\\n  $serialNumber: String!\\n  $model: String!\\n  $location: String!\\n  $status: String!\\n  $firmwareVersion: String!\\n  $customerId: String!\\n  $manufacturer: String\\n  $firmwareId: String\\n  $healthScore: Int\\n) {\\n  createDevice(\\n    deviceName: $deviceName\\n    serialNumber: $serialNumber\\n    model: $model\\n    location: $location\\n    status: $status\\n    firmwareVersion: $firmwareVersion\\n    customerId: $customerId\\n    manufacturer: $manufacturer\\n    firmwareId: $firmwareId\\n    healthScore: $healthScore\\n  ) {\\n    id\\n    deviceName\\n    serialNumber\\n    status\\n  }\\n}\",\n  \"variables\": {\n    \"deviceName\": \"QA-TEST-Device-01\",\n    \"serialNumber\": \"SN-QA-TEST-001\",\n    \"model\": \"XR-5000\",\n    \"location\": \"QA Lab\",\n    \"status\": \"Online\",\n    \"firmwareVersion\": \"1.0.0\",\n    \"customerId\": \"c001\",\n    \"manufacturer\": \"Acme Corp\",\n    \"healthScore\": 85\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "Register a new device. All required fields confirmed via introspection + live test.\n\nRequired (discovered during live testing — NOT in original docs):\n- location, status, firmwareVersion, customerId\n\nLive test result: PASS — id: dc912136-7b56-4b8e-98ea-ec01a3b201bf, status: Online"
+              },
+              "_id": "03fab2f8-c761-4870-8281-a48f4d68e54b"
+            },
+            {
+              "name": "M-02 updateDeviceCoords ✅",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.updateDeviceCoords', () => {",
+                      "  pm.expect(json.data).to.have.property('updateDeviceCoords');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"updateDeviceCoords\",\n  \"query\": \"mutation updateDeviceCoords(\\n  $address: String!\\n  $lat: Float!\\n  $lng: Float!\\n  $city: String!\\n  $country: String!\\n  $formattedAddress: String\\n) {\\n  updateDeviceCoords(\\n    address: $address\\n    lat: $lat\\n    lng: $lng\\n    city: $city\\n    country: $country\\n    formattedAddress: $formattedAddress\\n  ) {\\n    address\\n    lat\\n    lng\\n    city\\n    country\\n    formattedAddress\\n    cachedAt\\n    expiresAt\\n  }\\n}\",\n  \"variables\": {\n    \"address\": \"350 Fifth Avenue, New York, NY 10118\",\n    \"lat\": 40.7484,\n    \"lng\": -73.9967,\n    \"city\": \"New York\",\n    \"country\": \"USA\",\n    \"formattedAddress\": \"350 Fifth Ave, New York, NY 10118, USA\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "Update GPS coordinates for a device.\n\nRequired (discovered during live testing):\n- city, country (NOT in original docs)\n\n⚠️ GeocodedDeviceType has NO 'id' field — API catalogue was incorrect.\nReturn fields: address, lat, lng, city, country, formattedAddress, cachedAt, expiresAt\n\nLive test result: PASS — lat: 40.7484, lng: -73.9967"
+              },
+              "_id": "1216140b-ed8d-4db1-9e76-f3fb7f1e4cfb"
+            }
+          ],
+          "_id": "6b78a955-1033-49ef-9e89-c492796dc766"
+        },
+        {
+          "name": "💾 Firmware Mutations",
+          "description": "createFirmware, approveFirmware",
+          "item": [
+            {
+              "name": "M-03 createFirmware ✅",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.createFirmware', () => {",
+                      "  pm.expect(json.data).to.have.property('createFirmware');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"createFirmware\",\n  \"query\": \"mutation createFirmware(\\n  $name: String!\\n  $version: String!\\n  $deviceModel: String!\\n  $releaseDate: String!\\n  $fileName: String!\\n  $fileSize: Int!\\n  $fileSizeFormatted: String!\\n  $checksum: String!\\n  $uploadedBy: String!\\n  $s3Key: String!\\n  $s3Bucket: String!\\n  $manufacturer: String\\n  $checksumAlgorithm: String\\n  $releaseNotes: String\\n) {\\n  createFirmware(\\n    name: $name\\n    version: $version\\n    deviceModel: $deviceModel\\n    releaseDate: $releaseDate\\n    fileName: $fileName\\n    fileSize: $fileSize\\n    fileSizeFormatted: $fileSizeFormatted\\n    checksum: $checksum\\n    uploadedBy: $uploadedBy\\n    s3Key: $s3Key\\n    s3Bucket: $s3Bucket\\n    manufacturer: $manufacturer\\n    checksumAlgorithm: $checksumAlgorithm\\n    releaseNotes: $releaseNotes\\n  ) {\\n    id\\n    name\\n    version\\n    deviceModel\\n    status\\n  }\\n}\",\n  \"variables\": {\n    \"name\": \"QA-TEST Firmware v9.9\",\n    \"version\": \"9.9.0\",\n    \"deviceModel\": \"XR-5000\",\n    \"releaseDate\": \"2026-03-27\",\n    \"fileName\": \"qa-test-fw-9.9.0.bin\",\n    \"fileSize\": 1024000,\n    \"fileSizeFormatted\": \"1000 KB\",\n    \"checksum\": \"sha256:qa-test-abc123\",\n    \"uploadedBy\": \"u001\",\n    \"s3Key\": \"firmware/qa-test-fw-9.9.0.bin\",\n    \"s3Bucket\": \"hlm-firmware-bucket\",\n    \"checksumAlgorithm\": \"SHA-256\",\n    \"releaseNotes\": \"QA test firmware \\u2014 do not use in production\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "Upload and register a new firmware package.\n\nRequired (discovered during live testing — NOT in original docs):\n- releaseDate, fileName, fileSizeFormatted, uploadedBy, s3Key, s3Bucket\n\nfileSize is Int (bytes). New firmware defaults to 'Pending' status.\n\nLive test result: PASS — id: adbfccd8-7f36-4b1c-a35f-0eed4a7b623c, status: Pending"
+              },
+              "_id": "a21276af-0d09-4e4f-85dc-1321fe9f67ae"
+            },
+            {
+              "name": "M-04 approveFirmware ✅",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.approveFirmware', () => {",
+                      "  pm.expect(json.data).to.have.property('approveFirmware');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"approveFirmware\",\n  \"query\": \"mutation approveFirmware($firmwareId: String!, $approvedBy: String!) {\\n  approveFirmware(firmwareId: $firmwareId, approvedBy: $approvedBy) {\\n    id\\n    name\\n    status\\n  }\\n}\",\n  \"variables\": {\n    \"firmwareId\": \"94688ba5-81b0-4c73-9f2a-5923f0b4b256\",\n    \"approvedBy\": \"u001\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "Approve a firmware package (Pending → Approved).\n\nRequired (discovered during live testing — NOT in original docs):\n- approvedBy (NOT just 'id'/'firmwareId' — parameter is named 'firmwareId')\n\nLive test result: PASS — firmware 94688ba5 changed to Approved."
+              },
+              "_id": "30da1362-492b-4f3a-ba35-856535679691"
+            }
+          ],
+          "_id": "ddef2bda-f84e-46c6-bf0d-24d05eac6d0b"
+        },
+        {
+          "name": "🔧 Service Order Mutations",
+          "description": "createServiceOrder",
+          "item": [
+            {
+              "name": "M-05 createServiceOrder ✅",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.createServiceOrder', () => {",
+                      "  pm.expect(json.data).to.have.property('createServiceOrder');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"createServiceOrder\",\n  \"query\": \"mutation createServiceOrder(\\n  $title: String!\\n  $technicianId: String!\\n  $technicianName: String!\\n  $serviceType: String!\\n  $location: String!\\n  $scheduledDate: String!\\n  $scheduledTime: String!\\n  $priority: String!\\n  $customerId: String!\\n  $createdBy: String!\\n  $description: String\\n  $deviceIds: String\\n) {\\n  createServiceOrder(\\n    title: $title\\n    technicianId: $technicianId\\n    technicianName: $technicianName\\n    serviceType: $serviceType\\n    location: $location\\n    scheduledDate: $scheduledDate\\n    scheduledTime: $scheduledTime\\n    priority: $priority\\n    customerId: $customerId\\n    createdBy: $createdBy\\n    description: $description\\n    deviceIds: $deviceIds\\n  ) {\\n    id\\n    title\\n    priority\\n    technicianId\\n  }\\n}\",\n  \"variables\": {\n    \"title\": \"QA-TEST Service Order\",\n    \"description\": \"Manual test via QA\",\n    \"technicianId\": \"u003\",\n    \"technicianName\": \"Carol Smith\",\n    \"serviceType\": \"Maintenance\",\n    \"location\": \"QA Lab\",\n    \"scheduledDate\": \"2026-04-01\",\n    \"scheduledTime\": \"09:00\",\n    \"priority\": \"Low\",\n    \"customerId\": \"c001\",\n    \"createdBy\": \"u001\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "Create a new service/maintenance ticket.\n\nRequired (discovered during live testing — NOT in original docs):\n- technicianId, technicianName, serviceType, location,\n  scheduledDate, scheduledTime, priority, customerId, createdBy\n\n⚠️ Do NOT select 'status' in the response — causes enum serialization error.\n\nLive test result: PASS — id: e6f719af-45af-4981-ac7f-e73221bc8bb4"
+              },
+              "_id": "628877fa-bf44-46d4-8f29-8945a4ce7ded"
+            }
+          ],
+          "_id": "7e64fced-f3d8-4fc0-ae98-745a79df2365"
+        },
+        {
+          "name": "✅ Compliance Mutations",
+          "description": "createCompliance",
+          "item": [
+            {
+              "name": "M-06 createCompliance ✅",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.createCompliance', () => {",
+                      "  pm.expect(json.data).to.have.property('createCompliance');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"createCompliance\",\n  \"query\": \"mutation createCompliance(\\n  $firmwareId: String!\\n  $firmwareVersion: String!\\n  $deviceModel: String!\\n  $submittedBy: String!\\n  $submittedByName: String!\\n  $certifications: [String]!\\n  $vulnerabilities: AWSJSON\\n  $totalVulnerabilities: Int\\n  $complianceNotes: String\\n) {\\n  createCompliance(\\n    firmwareId: $firmwareId\\n    firmwareVersion: $firmwareVersion\\n    deviceModel: $deviceModel\\n    submittedBy: $submittedBy\\n    submittedByName: $submittedByName\\n    certifications: $certifications\\n    vulnerabilities: $vulnerabilities\\n    totalVulnerabilities: $totalVulnerabilities\\n    complianceNotes: $complianceNotes\\n  ) {\\n    id\\n    firmwareId\\n    certifications\\n  }\\n}\",\n  \"variables\": {\n    \"firmwareId\": \"94688ba5-81b0-4c73-9f2a-5923f0b4b256\",\n    \"firmwareVersion\": \"2.1.0\",\n    \"deviceModel\": \"XR-5000\",\n    \"submittedBy\": \"u001\",\n    \"submittedByName\": \"Alice Turner\",\n    \"certifications\": [\n      \"HIPAA\",\n      \"FCC\"\n    ],\n    \"totalVulnerabilities\": 0,\n    \"complianceNotes\": \"QA test submission\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "Submit firmware for compliance certification review.\n\nRequired (discovered during live testing — NOT in original docs):\n- submittedBy, submittedByName\n\n⚠️ SCHEMA DISCREPANCY: Introspection shows certifications as 'String!' but\nruntime requires '[String]!' (array). Always pass an array.\n\nLive test result: PASS — id: cceeac67-44fa-48c1-b3b4-b1692e8e1099, certs: [HIPAA, FCC]"
+              },
+              "_id": "4b041bbc-2aed-4a38-8b70-0179b71e885c"
+            }
+          ],
+          "_id": "4ab0c919-d337-4808-852d-fca781c669fd"
+        },
+        {
+          "name": "🔄 Status Mutations (Cross-Entity)",
+          "description": "updateEntityStatus — approve, deprecate, and bug verification",
+          "item": [
+            {
+              "name": "M-07a updateEntityStatus — Approve Firmware ✅",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.updateEntityStatus', () => {",
+                      "  pm.expect(json.data).to.have.property('updateEntityStatus');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"updateEntityStatus\",\n  \"query\": \"mutation updateEntityStatus(\\n  $entityType: String!\\n  $id: String!\\n  $newStatus: String!\\n  $updatedBy: String\\n) {\\n  updateEntityStatus(\\n    entityType: $entityType\\n    id: $id\\n    newStatus: $newStatus\\n    updatedBy: $updatedBy\\n  )\\n}\",\n  \"variables\": {\n    \"entityType\": \"firmware\",\n    \"id\": \"94688ba5-81b0-4c73-9f2a-5923f0b4b256\",\n    \"newStatus\": \"Approved\",\n    \"updatedBy\": \"u001\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "Transition firmware to Approved status.\n\nLive test result: PASS — returns full DynamoDB record JSON as AWSJSON scalar."
+              },
+              "_id": "a217b691-c003-4622-a1aa-0a6b231f3b0c"
+            },
+            {
+              "name": "M-07b updateEntityStatus — Deprecate Firmware ✅",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.updateEntityStatus', () => {",
+                      "  pm.expect(json.data).to.have.property('updateEntityStatus');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"updateEntityStatus\",\n  \"query\": \"mutation updateEntityStatus(\\n  $entityType: String!\\n  $id: String!\\n  $newStatus: String!\\n  $updatedBy: String\\n) {\\n  updateEntityStatus(\\n    entityType: $entityType\\n    id: $id\\n    newStatus: $newStatus\\n    updatedBy: $updatedBy\\n  )\\n}\",\n  \"variables\": {\n    \"entityType\": \"firmware\",\n    \"id\": \"98910328-e3cb-4d03-8690-5212c30ccece\",\n    \"newStatus\": \"Deprecated\",\n    \"updatedBy\": \"u001\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "Transition firmware to Deprecated status."
+              },
+              "_id": "c67c5863-d14c-49b2-bc93-8136a6f9a6c7"
+            },
+            {
+              "name": "M-07c updateEntityStatus — Approve Compliance ✅",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.updateEntityStatus', () => {",
+                      "  pm.expect(json.data).to.have.property('updateEntityStatus');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"updateEntityStatus\",\n  \"query\": \"mutation updateEntityStatus(\\n  $entityType: String!\\n  $id: String!\\n  $newStatus: String!\\n  $updatedBy: String\\n) {\\n  updateEntityStatus(\\n    entityType: $entityType\\n    id: $id\\n    newStatus: $newStatus\\n    updatedBy: $updatedBy\\n  )\\n}\",\n  \"variables\": {\n    \"entityType\": \"compliance\",\n    \"id\": \"c1ef0b2f-0ef2-49e8-8aa9-86ca9ee21401\",\n    \"newStatus\": \"Approved\",\n    \"updatedBy\": \"u001\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "Transition compliance record to Approved status."
+              },
+              "_id": "af136c6a-32ab-4581-8c20-9b3f5fa8f249"
+            },
+            {
+              "name": "M-07d updateEntityStatus — GARBAGE status ⚠️ BUG",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.updateEntityStatus', () => {",
+                      "  pm.expect(json.data).to.have.property('updateEntityStatus');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"updateEntityStatus\",\n  \"query\": \"mutation updateEntityStatus(\\n  $entityType: String!\\n  $id: String!\\n  $newStatus: String!\\n  $updatedBy: String\\n) {\\n  updateEntityStatus(\\n    entityType: $entityType\\n    id: $id\\n    newStatus: $newStatus\\n    updatedBy: $updatedBy\\n  )\\n}\",\n  \"variables\": {\n    \"entityType\": \"firmware\",\n    \"id\": \"98910328-e3cb-4d03-8690-5212c30ccece\",\n    \"newStatus\": \"GARBAGE_VALUE\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "⚠️ KNOWN BUG CONFIRMED: No server-side enum validation.\nPassing 'GARBAGE_VALUE' as newStatus is accepted with HTTP 200.\nLive test: status was persisted as 'GARBAGE_VALUE' in DynamoDB."
+              },
+              "_id": "12f9a1ef-18a1-4f4d-a37e-cff0a0bef84c"
+            },
+            {
+              "name": "M-07e updateEntityStatus — Non-Existent ID ⚠️ BUG",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test('No GraphQL errors', () => {",
+                      "  pm.expect(json.errors, JSON.stringify(json.errors)).to.be.undefined;",
+                      "});",
+                      "pm.test('Has data.updateEntityStatus', () => {",
+                      "  pm.expect(json.data).to.have.property('updateEntityStatus');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "{{auth_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operationName\": \"updateEntityStatus\",\n  \"query\": \"mutation updateEntityStatus(\\n  $entityType: String!\\n  $id: String!\\n  $newStatus: String!\\n  $updatedBy: String\\n) {\\n  updateEntityStatus(\\n    entityType: $entityType\\n    id: $id\\n    newStatus: $newStatus\\n    updatedBy: $updatedBy\\n  )\\n}\",\n  \"variables\": {\n    \"entityType\": \"firmware\",\n    \"id\": \"00000000-0000-0000-0000-000000000000\",\n    \"newStatus\": \"Approved\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{graphql_url}}",
+                  "variable": [],
+                  "host": [
+                    "{{graphql_url}}"
+                  ]
+                },
+                "description": "⚠️ KNOWN BUG CONFIRMED: No existence check on id.\nNon-existent UUID returns HTTP 200 and creates a new phantom record (upsert).\nLive test: 00000000-0000-0000-0000-000000000000 was created with status 'Approved'."
+              },
+              "_id": "60312b9c-aa05-417f-84fb-388016058c40"
+            }
+          ],
+          "_id": "f5c117d1-19a6-4111-afe8-3579876ed483"
+        }
+      ],
+      "_id": "2ef57147-b832-4381-900b-139d8ef6a4a9"
+    },
+    {
+      "name": "🗺️ REST — Map Tiles (AWS Location Service)",
+      "description": "GET requests made by MapLibre SDK on Geo Location tab",
+      "item": [
+        {
+          "name": "R-01 GET Style Descriptor",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://maps.geo.us-east-2.amazonaws.com/maps/v0/maps/HlmMapOpenData-a3b4d250-131a-11f1-90d8-0aa113e32f65/style-descriptor",
+              "host": [
+                "https://maps.geo.us-east-2.amazonaws.com/maps/v0/maps/HlmMapOpenData-a3b4d250-131a-11f1-90d8-0aa113e32f65/style-descriptor"
+              ]
+            },
+            "description": "Fetch map style JSON (colours, layers, fonts). Called once on map init by MapLibre SDK.\nAuth: AWS Signature v4 via Amplify session credentials (added automatically)."
+          },
+          "_id": "89185133-7d31-40b5-8969-f91583332fe9"
+        },
+        {
+          "name": "R-02 GET Sprite Sheet (PNG)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://maps.geo.us-east-2.amazonaws.com/maps/v0/maps/HlmMapOpenData-a3b4d250-131a-11f1-90d8-0aa113e32f65/sprites/sprites@2x.png",
+              "host": [
+                "https://maps.geo.us-east-2.amazonaws.com/maps/v0/maps/HlmMapOpenData-a3b4d250-131a-11f1-90d8-0aa113e32f65/sprites/sprites@2x.png"
+              ]
+            },
+            "description": "Icon sprite sheet image for map symbols. Auth: AWS Signature v4."
+          },
+          "_id": "3af1e120-8f3b-4586-80d3-0084a5523095"
+        },
+        {
+          "name": "R-03 GET Sprite Metadata (JSON)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://maps.geo.us-east-2.amazonaws.com/maps/v0/maps/HlmMapOpenData-a3b4d250-131a-11f1-90d8-0aa113e32f65/sprites/sprites@2x.json",
+              "host": [
+                "https://maps.geo.us-east-2.amazonaws.com/maps/v0/maps/HlmMapOpenData-a3b4d250-131a-11f1-90d8-0aa113e32f65/sprites/sprites@2x.json"
+              ]
+            },
+            "description": "Icon sprite coordinate metadata. Used alongside sprite PNG. Auth: AWS Signature v4."
+          },
+          "_id": "ece3b69b-edb9-4be2-88bb-047945631c27"
+        },
+        {
+          "name": "R-04 GET Map Tile z/x/y",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://maps.geo.us-east-2.amazonaws.com/maps/v0/maps/HlmMapOpenData-a3b4d250-131a-11f1-90d8-0aa113e32f65/tiles/7/35/48",
+              "host": [
+                "https://maps.geo.us-east-2.amazonaws.com/maps/v0/maps/HlmMapOpenData-a3b4d250-131a-11f1-90d8-0aa113e32f65/tiles/7/35/48"
+              ]
+            },
+            "description": "Vector map tile at z=7, x=35, y=48. Change z/x/y for different tiles.\nLoaded repeatedly on pan/zoom. Auth: AWS Signature v4."
+          },
+          "_id": "cab33d7e-7e94-41c4-86f9-16eb3f0c722c"
+        }
+      ],
+      "_id": "34a74f1d-dcaf-41d6-9ac9-4681aff961ab"
+    }
+  ]
+}
